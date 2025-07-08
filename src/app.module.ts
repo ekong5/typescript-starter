@@ -6,6 +6,8 @@ import { User } from './events/entities/user.entity';
 import { Event } from './events/entities/event.entity';
 import { DatabaseModule } from './database/database.module';
 import { EventsModule } from './events/events.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -30,5 +32,7 @@ import { EventsModule } from './events/events.module';
     DatabaseModule,
     EventsModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -1,8 +1,360 @@
 import { Injectable } from '@nestjs/common';
+import { Response } from 'express';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
+  getHomepage(res: Response) {
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events API Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background-color: #28a745; }
+        .post { background-color: #007bff; }
+        .delete { background-color: #dc3545; }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>Events API Demo</h1>
+    
+    <div class="container">
+        <h2>User Management</h2>
+        
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <strong>/users</strong> - Create User
+            <br>
+            <div class="form-group">
+                <label for="user-name">Name:</label>
+                <input type="text" id="user-name" placeholder="Enter user name">
+            </div>
+            <button onclick="createUser()">Create User</button>
+            <div id="create-user-response" class="response" style="display:none;"></div>
+        </div>
+        
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <strong>/users</strong> - Get All Users
+            <br>
+            <button onclick="getAllUsers()">Get All Users</button>
+            <div id="users-response" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Event Management</h2>
+        
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <strong>/events</strong> - Create Event
+            <br>
+            <div class="form-group">
+                <label for="event-title">Title:</label>
+                <input type="text" id="event-title" placeholder="Event title">
+            </div>
+            <div class="form-group">
+                <label for="event-description">Description:</label>
+                <textarea id="event-description" placeholder="Event description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="event-status">Status:</label>
+                <select id="event-status">
+                    <option value="TODO">TODO</option>
+                    <option value="IN_PROGRESS">IN_PROGRESS</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="event-start">Start Time:</label>
+                <input type="datetime-local" id="event-start">
+            </div>
+            <div class="form-group">
+                <label for="event-end">End Time:</label>
+                <input type="datetime-local" id="event-end">
+            </div>
+            <div class="form-group">
+                <label for="event-invitees">Invitee IDs (comma separated):</label>
+                <input type="text" id="event-invitees" placeholder="user-id-1,user-id-2">
+            </div>
+            <button onclick="createEvent()">Create Event</button>
+            <div id="create-event-response" class="response" style="display:none;"></div>
+        </div>
+        
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <strong>/events/:id</strong> - Get Event
+            <br>
+            <div class="form-group">
+                <label for="event-id">Event ID:</label>
+                <input type="text" id="event-id" placeholder="Enter event ID">
+            </div>
+            <button onclick="getEvent()">Get Event</button>
+            <div id="get-event-response" class="response" style="display:none;"></div>
+        </div>
+        
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <strong>/events/:id</strong> - Delete Event
+            <br>
+            <div class="form-group">
+                <label for="delete-event-id">Event ID:</label>
+                <input type="text" id="delete-event-id" placeholder="Enter event ID to delete">
+            </div>
+            <button onclick="deleteEvent()">Delete Event</button>
+            <div id="delete-event-response" class="response" style="display:none;"></div>
+        </div>
+        
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <strong>/events/merge-all/:userId</strong> - Merge Overlapping Events
+            <br>
+            <div class="form-group">
+                <label for="merge-user-id">User ID:</label>
+                <input type="text" id="merge-user-id" placeholder="Enter user ID">
+            </div>
+            <button onclick="mergeEvents()">Merge Events</button>
+            <div id="merge-response" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+
+        function showResponse(elementId, response, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = \`response \${isError ? 'error' : 'success'}\`;
+            element.textContent = typeof response === 'string' ? response : JSON.stringify(response, null, 2);
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return await response.json();
+                } else {
+                    return await response.text();
+                }
+            } catch (error) {
+                throw new Error(\`Request failed: \${error.message}\`);
+            }
+        }
+
+        async function createUser() {
+            const name = document.getElementById('user-name').value;
+            if (!name) {
+                showResponse('create-user-response', 'Please enter a name', true);
+                return;
+            }
+            
+            try {
+                const response = await makeRequest(\`\${API_BASE}/users\`, {
+                    method: 'POST',
+                    body: JSON.stringify({ name })
+                });
+                showResponse('create-user-response', response);
+            } catch (error) {
+                showResponse('create-user-response', error.message, true);
+            }
+        }
+
+        async function getAllUsers() {
+            try {
+                const response = await makeRequest(\`\${API_BASE}/users\`);
+                showResponse('users-response', response);
+            } catch (error) {
+                showResponse('users-response', error.message, true);
+            }
+        }
+
+        async function createEvent() {
+            const title = document.getElementById('event-title').value;
+            const description = document.getElementById('event-description').value;
+            const status = document.getElementById('event-status').value;
+            const startTime = document.getElementById('event-start').value;
+            const endTime = document.getElementById('event-end').value;
+            const invitees = document.getElementById('event-invitees').value;
+            
+            if (!title || !startTime || !endTime) {
+                showResponse('create-event-response', 'Please fill in required fields (title, start time, end time)', true);
+                return;
+            }
+            
+            const inviteeIds = invitees ? invitees.split(',').map(id => id.trim()).filter(id => id) : [];
+            
+            try {
+                const response = await makeRequest(\`\${API_BASE}/events\`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        status,
+                        startTime,
+                        endTime,
+                        inviteeIds
+                    })
+                });
+                showResponse('create-event-response', response);
+            } catch (error) {
+                showResponse('create-event-response', error.message, true);
+            }
+        }
+
+        async function getEvent() {
+            const eventId = document.getElementById('event-id').value;
+            if (!eventId) {
+                showResponse('get-event-response', 'Please enter an event ID', true);
+                return;
+            }
+            
+            try {
+                const response = await makeRequest(\`\${API_BASE}/events/\${eventId}\`);
+                showResponse('get-event-response', response);
+            } catch (error) {
+                showResponse('get-event-response', error.message, true);
+            }
+        }
+
+        async function deleteEvent() {
+            const eventId = document.getElementById('delete-event-id').value;
+            if (!eventId) {
+                showResponse('delete-event-response', 'Please enter an event ID', true);
+                return;
+            }
+            
+            try {
+                const response = await makeRequest(\`\${API_BASE}/events/\${eventId}\`, {
+                    method: 'DELETE'
+                });
+                showResponse('delete-event-response', 'Event deleted successfully');
+            } catch (error) {
+                showResponse('delete-event-response', error.message, true);
+            }
+        }
+
+        async function mergeEvents() {
+            const userId = document.getElementById('merge-user-id').value;
+            if (!userId) {
+                showResponse('merge-response', 'Please enter a user ID', true);
+                return;
+            }
+            
+            try {
+                const response = await makeRequest(\`\${API_BASE}/events/merge-all/\${userId}\`, {
+                    method: 'POST'
+                });
+                showResponse('merge-response', response);
+            } catch (error) {
+                showResponse('merge-response', error.message, true);
+            }
+        }
+    </script>
+</body>
+</html>
+    `;
+    
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
   }
 }

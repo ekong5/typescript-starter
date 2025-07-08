@@ -12,10 +12,18 @@ describe('AppController', () => {
     }).compile();
   });
 
-  describe('getHello', () => {
-    it('should return "Hello World!"', () => {
+  describe('getHomepage', () => {
+    it('should return HTML response', () => {
       const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Hello World!');
+      const mockResponse = {
+        setHeader: jest.fn(),
+        send: jest.fn(),
+      };
+      
+      appController.getHomepage(mockResponse as any);
+      
+      expect(mockResponse.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
+      expect(mockResponse.send).toHaveBeenCalledWith(expect.stringContaining('Events API Demo'));
     });
   });
 });
